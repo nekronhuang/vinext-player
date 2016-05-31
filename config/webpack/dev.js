@@ -1,6 +1,7 @@
 'use strict'
 
 const path = require('path')
+const webpack = require('webpack')
 
 const config = require('./base')
 
@@ -18,7 +19,7 @@ config.output = {
 }
 
 config.devServer = {
-  port: 8000,
+  port: 8800,
   host: '0.0.0.0',
   historyApiFallback: true,
   watchOptions: {
@@ -27,5 +28,11 @@ config.devServer = {
   },
   contentBase: './demo',
 }
+
+config.plugins = config.plugins.concat([
+  new webpack.DefinePlugin({
+    VERSION: `'debug mode'`
+  })
+])
 
 module.exports = config

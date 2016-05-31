@@ -1,0 +1,191 @@
+$H: 40px;
+$ctnPadding: 5px;
+$h: $H - $ctnPadding * 2;
+$barBg: rgba(48, 40, 44, .5);
+
+@mixin btn() {
+  width: $h;
+  height: $h;
+  margin: 0 10px;
+  font-family: 'vinext-svg';
+  font-size: 16px;
+  color: #fff;
+  line-height: $h;
+  text-align: center;
+  cursor: pointer;
+  &::after {
+    content: '';
+    position: absolute;
+    width: $h - $ctnPadding * 2;
+    height: $h - $ctnPadding * 2;
+    margin: $ctnPadding -18px;
+    border-radius: 50%;
+    background: radial-gradient(50% 50%, rgba(#fff, .65), rgba(#fff, .2));
+    opacity: 0;
+    box-shadow: 0 0 15px rgba(#fff, .4);
+    transform: scale(0);
+    transition: all cubic-bezier(0.31, -0.1, 0.43, 1.4) .4s;
+  }
+  &:hover::after {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@mixin text() {
+  width: 45px;
+  height: $h;
+  margin: 0 10px;
+  font-size: 14px;
+  color: #fff;
+  line-height: $h;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.vinext-bar {
+  display: flex;
+  height: 100%;
+  padding: 5px;
+  border-radius: 4px;
+  background-color: $barBg;
+  user-select: none;
+}
+
+.vinext-bar-btn--play {
+  @include btn();
+}
+
+.vinext-bar-btn--mute {
+  @include btn();
+}
+
+.vinext-bar-btn--fs {
+  @include btn();
+}
+
+.vinext-bar-time--current {
+  @include text();
+}
+
+.vinext-bar-time--total {
+  @include text();
+}
+
+.vinext-bar-progress {
+  position: relative;
+  flex: 1;
+  &::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: ($h - 4px)/2;
+    width: 4px;
+    height: 4px;
+    background: #fff;
+  }
+  &:hover .vinext-buffered::after,
+  &:hover .vinext-played::after {
+    transform: scale(1, 1);
+  }
+  .vinext-buffered {
+    position: absolute;
+    top: ($h - 2px)/2;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: rgba(#fff, .5);
+    pointer-events: none;
+    &::after {
+      content: '';
+      position: absolute;
+      top: (2px - $H)/2;
+      width: 100%;
+      height: 40px;
+      background: rgba(#fff, .1);
+      transform: scale(1, 0);
+      transition: all ease-out .25s;
+    }
+  }
+  .vinext-played {
+    position: absolute;
+    top: ($h - 2px)/2;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: rgb(9, 209, 177);
+    pointer-events: none;
+    &::after {
+      content: '';
+      position: absolute;
+      top: (2px - $H)/2;
+      width: 100%;
+      height: 40px;
+      border-right: 2px solid rgba(#fff, .6);
+      background: rgba(9, 209, 177, .3);
+      transform: scale(1, 0);
+      transition: all ease-out .25s;
+    }
+  }
+  .vinext-dot {
+    position: absolute;
+    left: 0;
+    top: -5px;
+    width: 2px;
+    height: 40px;
+    opacity: 0;
+    transition: opacity ease-in-out .4s;
+    pointer-events: none;
+    &.__show {
+      opacity: 1;
+      .vinext-hint {
+        transform: translate(-50%, 0) rotateX(0);
+      }
+    }
+    .vinext-fill {
+      width: 100%;
+      height: 100%;
+      background: rgba(#fff, .8);
+    }
+    .vinext-hint {
+      position: absolute;
+      top: -36px;
+      width: auto;
+      height: 24px;
+      margin-left: 1px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #fff;
+      line-height: 20px;
+      text-align: center;
+      background: $barBg;
+      transform: translate(-50%, 0) rotateX(180deg);
+      transform-origin: bottom;
+      backface-visibility: hidden;
+      transition: all ease-in-out .4s;
+      &::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: -5px;
+        margin-left: -5px;
+        border-style: solid;
+        border-width: 5px 5px 0 5px;
+        border-color: $barBg transparent transparent transparent;
+      }
+    }
+  }
+}
+
+.vinext-bar-logo {
+  margin: 0 10px;
+  .vinext-img {
+    width: auto;
+    max-width: 80px;
+    height: $h;
+  }
+}

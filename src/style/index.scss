@@ -1,12 +1,34 @@
+@font-face {
+    font-family: 'vinext-svg';
+    src: url('http://7xjfim.com2.z0.glb.qiniucdn.com/iva2-iconfont.woff') format('woff'),
+    url('http://7xjfim.com2.z0.glb.qiniucdn.com/iva2-iconfont.ttf') format('truetype');
+}
+
 #vinext-player--ctn {
+  position: relative;
   width: 100%;
   height: 100%;
   #vinext-player {
     width: 100%;
     height: 100%;
   }
+  * {
+    box-sizing: border-box;
+    &::before, &::after {
+      box-sizing: border-box;
+    }
+  }
 }
 
 #vinext-controlbar--ctn {
-  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: 15px;
+  z-index: 30;
+  width: 94%;
+  max-width: 770px;
+  height: 40px;
+  transform: translate(-50%, 0);
 }
+
+@import './bar';

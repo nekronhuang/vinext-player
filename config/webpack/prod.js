@@ -3,6 +3,7 @@
 const path = require('path')
 const webpack = require('webpack')
 
+const pack = require('../../package.json')
 const config = require('./base')
 
 config.debug = false
@@ -29,6 +30,9 @@ config.plugins = config.plugins.concat([
       screw_ie8: true,
       keep_fnames: true, // useful for code using Function.prototype.name
     }
+  }),
+  new webpack.DefinePlugin({
+    VERSION: `'Vinext@${pack.version} update on ${new Date()}'`
   })
 ])
 

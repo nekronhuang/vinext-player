@@ -1,12 +1,18 @@
 import { Option, Flashvars, PlayerElement } from './define/main.d'
+import Bar from './modules/bar'
 
+const log = require('debug')('vinext:main')
 import './style'
+
+log(VERSION)
 
 class Player {
   $parent: Element
+  $container: Element
   $player: PlayerElement
   option: Option
   isReady: boolean
+  bar: Bar
 
   constructor(parent: string, args: Option) {
     this.$parent = document.querySelector(parent)
@@ -60,12 +66,13 @@ class Player {
     (<any>window).vjjFlash = {
       onReady: () => {
         this.isReady = true
-        // this.$player.set('src', this.option.video)
+        this.$player.set('src', this.option.video)
       },
       onEvent: (id: string, evtName: string) => {
         switch (evtName) {
           case 'loadeddata':
-            // this.$player.play()
+            this.bar = new Bar(this)
+            this.$player.play()
             break
           case 'play':
             if (typeof this.$player.onPlay === 'function') {
@@ -95,7 +102,7 @@ class Player {
     const m3u8Reg: any = new RegExp('\.m3u8$')
     const rtmpReg: any = new RegExp('^rtmp:\/\/')
     let vars: Flashvars = {
-      playFormat: 3,
+      playFormat: 1,
       videoForm: 1,
       appkey: this.option.appkey,
       mode: '',
@@ -133,6 +140,7 @@ class Player {
       </div>
     `
     this.$parent.innerHTML += html
+    this.$container = this.$parent.querySelector('#vinext-player--ctn')
     this.$player = this.$parent.querySelector('#vinext-player') as PlayerElement
   }
 }
