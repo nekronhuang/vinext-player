@@ -7,8 +7,10 @@ const log = require('debug')('vinext:bar')
 class Bar {
   player: Player
   $container: Element
+  $parent: Element
   $playBtn: Element
   $muteBtn: Element
+  $volBar: Element
   $fsBtn: Element
   $progress: Element
   $dot: HTMLElement
@@ -19,8 +21,41 @@ class Bar {
   constructor(p: Player) {
     this.player = p
     this.$container = this.player.$parent.querySelector('#vinext-controlbar--ctn')
+    this.$parent = this.player.$container
 
     this.$inject()
+  }
+
+  public toggleDisplay(status: boolean) {
+    if (status) {
+      this.$container.classList.add('__show')
+    } else {
+      this.$container.classList.remove('__show')
+    }
+  }
+
+  public togglePlay(status: boolean) {
+    if (status) {
+      this.$playBtn.innerHTML = '&#xe602;'
+      this.player.$player.play()
+    } else {
+      this.$playBtn.innerHTML = '&#xe603;'
+      this.player.$player.pause()
+    }
+  }
+
+  public toggleTimer(status: boolean) {
+    if (status) {
+      this._timer = setInterval(() => this.updateProgress(this.player.currentTime), 250)
+    } else {
+      clearInterval(this._timer)
+    }
+  }
+
+  public updateProgress(time: number) {
+    this.$currentTime.innerHTML = formatDuration(time)
+    const $played = <HTMLElement>this.$progress.querySelector('.vinext-played')
+    $played.style.width = time / this.player.duration * 100 + '%'
   }
 
   private $inject(): void {
@@ -38,7 +73,12 @@ class Bar {
           </div>
         </div>
         <div class="vinext-bar-time--total">${formatDuration(this.player.duration)}</div>
-        <div class="vinext-bar-btn--mute">&#xe604;</div>
+        <div class="vinext-bar-btn--mute">
+          <div class="vinext-btn">&#xe604;</div>
+          <div class="vinext-dropdown-list">
+            <div class="vinext-dropdown-item"><div class="vinext-fill"></div></div>
+          </div>
+        </div>
         <div class="vinext-bar-btn--fs">&#xe601;</div>
         <div class="vinext-bar-list--clarity"></div>
         <div class="vinext-bar-logo">
@@ -49,11 +89,19 @@ class Bar {
     /* tslint:enable */
     this.$container.innerHTML += html
 
+    this.$container.addEventListener('mousedown', evt => {
+      evt.stopPropagation()
+      const event = new MouseEvent('mousemove')
+      this.$parent.dispatchEvent(event)
+    }, false)
+
     this.$playBtn = this.$container.querySelector('.vinext-bar-btn--play')
     this.$playBtn.addEventListener('click', this._onPlayClick.bind(this), false)
 
     this.$muteBtn = this.$container.querySelector('.vinext-bar-btn--mute')
     this.$muteBtn.addEventListener('click', this._onMuteClick.bind(this), false)
+    this.$volBar = this.$muteBtn.querySelector('.vinext-dropdown-list')
+    this.$volBar.addEventListener('click', this._onVolBarClick.bind(this), false)
 
     this.$fsBtn = this.$container.querySelector('.vinext-bar-btn--fs')
     this._fsListener = this._onFsClick.bind(this)
@@ -67,24 +115,17 @@ class Bar {
     this.$progress.addEventListener('click', moveFn, false)
 
     this.$currentTime = this.$container.querySelector('.vinext-bar-time--current')
-    this._timer = setInterval(() => {
-      this.$currentTime.innerHTML = formatDuration(this.player.currentTime)
-      const $played = <HTMLElement>this.$progress.querySelector('.vinext-played')
-      $played.style.width = this.player.currentTime / this.player.duration * 100 + '%'
-    }, 250)
+
+    this.toggleTimer(true)
   }
 
   private _onPlayClick() {
-    const btn = this.$playBtn
-
     log('video paused: ', this.player.paused)
 
     if (this.player.paused) {
-      btn.innerHTML = '&#xe602;'
-      this.player.play()
+      this.togglePlay(true)
     } else {
-      btn.innerHTML = '&#xe603;'
-      this.player.pause()
+      this.togglePlay(false)
     }
   }
 
@@ -102,6 +143,26 @@ class Bar {
     }
   }
 
+  private _onVolBarClick(evt: DragEvent) {
+    evt.stopPropagation()
+    const height = this.$volBar.clientHeight - 10 // padding
+    const min = 5
+    const max = height - min
+    let v = height - evt.offsetY
+    if (v < min) {
+      v = 0
+    } else if (v > max) {
+      v = height
+    }
+    const ratio = v / height
+
+    log('video voluem: ', ratio)
+
+    this.player.$player.set('volume', ratio)
+    const $fill = <HTMLElement>this.$volBar.querySelector('.vinext-fill')
+    $fill.style.height = ratio * 100 + '%'
+  }
+
   private _onFsClick(evt: Event) {
     const btn = this.$fsBtn
 
@@ -114,7 +175,7 @@ class Bar {
         document[fullscreenApi.exit]()
       } else {
         btn.innerHTML = '&#xe600;'
-        this.player.$container[fullscreenApi.request]()
+        this.$parent[fullscreenApi.request]()
         document.removeEventListener(fullscreenApi.change, this._fsListener, false)
         document.addEventListener(fullscreenApi.change, this._fsListener, false)
       }

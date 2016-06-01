@@ -1,6 +1,6 @@
 {
   "name": "vinext-player",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A project to learn TypeScript.",
   "scripts": {
     "dev": "webpack-dev-server --inline --hot --config config/webpack/dev.js",

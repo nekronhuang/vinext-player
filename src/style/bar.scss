@@ -13,6 +13,9 @@ $barBg: rgba(48, 40, 44, .5);
   line-height: $h;
   text-align: center;
   cursor: pointer;
+}
+
+@mixin hoverEffect() {
   &::after {
     content: '';
     position: absolute;
@@ -57,14 +60,56 @@ $barBg: rgba(48, 40, 44, .5);
 
 .vinext-bar-btn--play {
   @include btn();
+  @include hoverEffect();
 }
 
 .vinext-bar-btn--mute {
   @include btn();
+  position: relative;
+  // effect is not good
+  // transform-style: preserve-3d;
+  // perspective: 500px;
+  // perspective-origin: bottom;
+  &:hover {
+    .vinext-dropdown-list {
+      transform: rotateX(0);
+    }
+  }
+  .vinext-btn {
+    @include hoverEffect();
+  }
+  .vinext-dropdown-list {
+    position: absolute;
+    bottom: $h;
+    width: $h;
+    height: 90px;
+    padding: 0 0 10px;
+    transform: rotateX(180deg);
+    transform-origin: bottom;
+    backface-visibility: hidden;
+    transition: all ease-in-out .4s;
+    .vinext-dropdown-item {
+      position: relative;
+      width: 4px;
+      height: 100%;
+      margin: 0 auto;
+      background: rgba(#fff, .5);
+      .vinext-fill {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        background: rgb(9, 209, 177);
+        pointer-events: none;
+      }
+    }
+  }
 }
 
 .vinext-bar-btn--fs {
   @include btn();
+  @include hoverEffect();
 }
 
 .vinext-bar-time--current {
@@ -78,6 +123,7 @@ $barBg: rgba(48, 40, 44, .5);
 .vinext-bar-progress {
   position: relative;
   flex: 1;
+  cursor: pointer;
   &::after {
     content: '';
     position: absolute;

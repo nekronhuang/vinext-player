@@ -28,7 +28,14 @@
   width: 94%;
   max-width: 770px;
   height: 40px;
+  opacity: 0;
   transform: translate(-50%, 0);
+  transition: opacity ease-in-out .4s;
+  pointer-events: none;
+  &.__show {
+    opacity: 1;
+    pointer-events: initial;
+  }
 }
 
 @import './bar';

@@ -13,6 +13,8 @@ class Player {
   option: Option
   isReady: boolean
   bar: Bar
+  _moveTimer: any
+  _seekTimer: any
 
   constructor(parent: string, args: Option) {
     this.$parent = document.querySelector(parent)
@@ -27,11 +29,19 @@ class Player {
   }
 
   public play(): void {
-    this.$player.play()
+    if (this.isReady) this.bar.togglePlay(true)
   }
 
   public pause(): void {
-    this.$player.pause()
+    if (this.isReady) this.bar.togglePlay(false)
+  }
+
+  public showBar() {
+    if (this.isReady) this.bar.toggleDisplay(true)
+  }
+
+  public hideBar() {
+    if (this.isReady) this.bar.toggleDisplay(false)
   }
 
   public get currentTime(): number {
@@ -65,12 +75,12 @@ class Player {
   private _init(): void {
     (<any>window).vjjFlash = {
       onReady: () => {
-        this.isReady = true
         this.$player.set('src', this.option.video)
       },
       onEvent: (id: string, evtName: string) => {
         switch (evtName) {
           case 'loadeddata':
+            this.isReady = true
             this.bar = new Bar(this)
             this.$player.play()
             break
@@ -142,6 +152,49 @@ class Player {
     this.$parent.innerHTML += html
     this.$container = this.$parent.querySelector('#vinext-player--ctn')
     this.$player = this.$parent.querySelector('#vinext-player') as PlayerElement
+
+    this.$container.addEventListener('mousemove', this._onCtnMove.bind(this), false)
+    // can't fire click event on object
+    this.$container.addEventListener('mousedown', this._onCtnClick.bind(this), false)
+    let seekTime = 0
+    document.addEventListener('keydown', (evt: KeyboardEvent) => {
+      this.pause()
+      this._onCtnMove()
+      this.bar.toggleTimer(false)
+      seekTime = seekTime || this.currentTime
+
+      if (evt.keyCode === 37) {
+        // left
+        seekTime -= 5
+      } else if (evt.keyCode === 39) {
+        // right
+        seekTime += 5
+      }
+      this.bar.updateProgress(seekTime)
+
+      clearTimeout(this._seekTimer)
+      this._seekTimer = setTimeout(() => {
+        this.currentTime = seekTime
+        this.bar.toggleTimer(true)
+        this.play()
+        seekTime = 0
+      }, 300);
+    }, false)
+  }
+
+  private _onCtnMove() {
+    this.showBar()
+
+    clearTimeout(this._moveTimer)
+    this._moveTimer = setTimeout(() => this.hideBar(), 2000)
+  }
+
+  private _onCtnClick() {
+    if (this.paused) {
+      this.play()
+    } else {
+      this.pause()
+    }
   }
 }
 
