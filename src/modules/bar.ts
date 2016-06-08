@@ -37,10 +37,8 @@ class Bar {
   public togglePlay(status: boolean) {
     if (status) {
       this.$playBtn.innerHTML = '&#xe602;'
-      this.player.$player.play()
     } else {
       this.$playBtn.innerHTML = '&#xe603;'
-      this.player.$player.pause()
     }
   }
 
@@ -123,9 +121,9 @@ class Bar {
     log('video paused: ', this.player.paused)
 
     if (this.player.paused) {
-      this.togglePlay(true)
+      this.player.play()
     } else {
-      this.togglePlay(false)
+      this.player.pause()
     }
   }
 

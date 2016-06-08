@@ -12,6 +12,8 @@ class Player {
   $player: PlayerElement
   option: Option
   isReady: boolean
+  isEnd: boolean
+  isSeeking: number
   bar: Bar
   _moveTimer: any
   _seekTimer: any
@@ -19,6 +21,9 @@ class Player {
   constructor(parent: string, args: Option) {
     this.$parent = document.querySelector(parent)
     this.option = args
+    this.isReady = false
+    this.isEnd = false
+    this.isSeeking = 0
 
     if (this.$parent) {
       this._init()
@@ -29,11 +34,16 @@ class Player {
   }
 
   public play(): void {
-    if (this.isReady) this.bar.togglePlay(true)
+    if (this.isReady) {
+      if (this.isEnd) {
+        this.currentTime = 0
+      }
+      this.$player.play()
+    }
   }
 
   public pause(): void {
-    if (this.isReady) this.bar.togglePlay(false)
+    if (this.isReady) this.$player.pause()
   }
 
   public showBar() {
@@ -55,7 +65,9 @@ class Player {
     if (!this.isReady) {
       return
     }
+    this.isSeeking = time
     this.$player.set('currentTime', time)
+    if (this.paused) this.$player.play()
   }
 
   public get duration(): number {
@@ -66,7 +78,7 @@ class Player {
   }
 
   public get paused(): boolean {
-    if (!this.isReady) {
+    if (!this.isReady || this.isEnd) {
       return true
     }
     return this.$player.get('paused')
@@ -78,6 +90,7 @@ class Player {
         this.$player.set('src', this.option.video)
       },
       onEvent: (id: string, evtName: string) => {
+        log(evtName)
         switch (evtName) {
           case 'loadeddata':
             this.isReady = true
@@ -85,20 +98,27 @@ class Player {
             this.$player.play()
             break
           case 'play':
+          case 'canplay':
+            this.isEnd = false
+            this.bar.togglePlay(true)
             if (typeof this.$player.onPlay === 'function') {
               this.$player.onPlay()
             }
             break
           case 'pause':
           case 'seeking':
+            this.bar.togglePlay(false)
             if (typeof this.$player.onPause === 'function') {
               this.$player.onPause()
             }
             break
-          case 'canplay':
+          case 'seeked':
             if (typeof this.$player.onSetTime === 'function') {
-              this.$player.onSetTime()
+              this.$player.onSetTime(this.isSeeking)
             }
+            break
+          case 'ended':
+            this.isEnd = true
             break
           default:
             break
@@ -158,27 +178,32 @@ class Player {
     this.$container.addEventListener('mousedown', this._onCtnClick.bind(this), false)
     let seekTime = 0
     document.addEventListener('keydown', (evt: KeyboardEvent) => {
-      this.pause()
-      this._onCtnMove()
-      this.bar.toggleTimer(false)
-      seekTime = seekTime || this.currentTime
+      if (evt.keyCode === 37 || evt.keyCode === 39) {
+        this.pause()
+        this._onCtnMove()
+        this.bar.toggleTimer(false)
+        seekTime = seekTime || this.currentTime
+        if (evt.keyCode === 37) {
+          // left
+          const temp = seekTime - 5
+          seekTime = temp >= 0 ? temp : 0.1 // prevent trigger seekTime init value
+        } else if (evt.keyCode === 39) {
+          // right
+          const temp = seekTime + 5
+          seekTime = temp >= this.duration ? this.duration : temp
+        }
+        this.bar.updateProgress(seekTime)
 
-      if (evt.keyCode === 37) {
-        // left
-        seekTime -= 5
-      } else if (evt.keyCode === 39) {
-        // right
-        seekTime += 5
+        if (typeof this._seekTimer !== 'undefined') {
+          clearTimeout(this._seekTimer)
+        }
+        this._seekTimer = setTimeout(() => {
+          this.currentTime = seekTime
+          this.bar.toggleTimer(true)
+          this.play()
+          seekTime = 0
+        }, 500);
       }
-      this.bar.updateProgress(seekTime)
-
-      clearTimeout(this._seekTimer)
-      this._seekTimer = setTimeout(() => {
-        this.currentTime = seekTime
-        this.bar.toggleTimer(true)
-        this.play()
-        seekTime = 0
-      }, 300);
     }, false)
   }
 

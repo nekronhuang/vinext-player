@@ -1,10 +1,11 @@
 {
   "name": "vinext-player",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A project to learn TypeScript.",
   "scripts": {
     "dev": "webpack-dev-server --inline --hot --config config/webpack/dev.js",
-    "prod": "webpack --progress --hide-modules --config config/webpack/prod.js"
+    "prod": "webpack --progress --hide-modules --config config/webpack/prod.js",
+    "pre-release": "go-upload -user nekron -local main.bundle.js -remote vinext-player.js"
   },
   "repository": {
     "type": "git",
