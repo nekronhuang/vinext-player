@@ -1,10 +1,12 @@
-import { Option, Flashvars, PlayerElement } from './define/main.d'
 import Bar from './modules/bar'
+import { NOT_READY_ERR } from './constants/error'
 
 const log = require('debug')('vinext:main')
 import './style'
 
-log(VERSION)
+/* tslint:disable */
+console.info(VERSION)
+/* tslint:enable */
 
 class Player {
   $parent: Element
@@ -15,15 +17,19 @@ class Player {
   isEnd: boolean
   isSeeking: number
   bar: Bar
+  initCallback: Function
+  _seekTime: number
+  _eventListener: Array<EventListenerObject>
   _moveTimer: any
   _seekTimer: any
 
-  constructor(parent: string, args: Option) {
+  constructor(parent: string, args: Option, callback: Function) {
     this.$parent = document.querySelector(parent)
     this.option = args
     this.isReady = false
     this.isEnd = false
     this.isSeeking = 0
+    if (callback) this.initCallback = callback
 
     if (this.$parent) {
       this._init()
@@ -38,20 +44,32 @@ class Player {
       if (this.isEnd) {
         this.currentTime = 0
       }
-      this.$player.play()
+      return this.$player.play()
     }
+    throw new Error(NOT_READY_ERR)
   }
 
   public pause(): void {
-    if (this.isReady) this.$player.pause()
+    if (this.isReady) return this.$player.pause()
+    throw new Error(NOT_READY_ERR)
   }
 
   public showBar() {
-    if (this.isReady) this.bar.toggleDisplay(true)
+    if (this.isReady) return this.bar.toggleDisplay(true)
+    throw new Error(NOT_READY_ERR)
   }
 
   public hideBar() {
-    if (this.isReady) this.bar.toggleDisplay(false)
+    if (this.isReady) return this.bar.toggleDisplay(false)
+    throw new Error(NOT_READY_ERR)
+  }
+
+  public insertDots(dots: Array<Dot>) {
+    if (this.isReady) {
+      const arr = dots.filter(dot => dot.time > 0 && dot.time < this.duration)
+      return this.bar.insertDots(arr)
+    }
+    throw new Error(NOT_READY_ERR)
   }
 
   public get currentTime(): number {
@@ -63,7 +81,7 @@ class Player {
 
   public set currentTime(time: number) {
     if (!this.isReady) {
-      return
+      throw new Error(NOT_READY_ERR)
     }
     this.isSeeking = time
     this.$player.set('currentTime', time)
@@ -84,6 +102,12 @@ class Player {
     return this.$player.get('paused')
   }
 
+  public destroy() {
+    this.bar.destroy()
+    document.removeEventListener('keydown', this._eventListener[0], false)
+    this.$container.remove()
+  }
+
   private _init(): void {
     (<any>window).vjjFlash = {
       onReady: () => {
@@ -93,9 +117,10 @@ class Player {
         log(evtName)
         switch (evtName) {
           case 'loadeddata':
-            this.isReady = true
             this.bar = new Bar(this)
+            this.isReady = true
             this.$player.play()
+            if (this.initCallback) this.initCallback()
             break
           case 'play':
           case 'canplay':
@@ -176,38 +201,43 @@ class Player {
     this.$container.addEventListener('mousemove', this._onCtnMove.bind(this), false)
     // can't fire click event on object
     this.$container.addEventListener('mousedown', this._onCtnClick.bind(this), false)
-    let seekTime = 0
-    document.addEventListener('keydown', (evt: KeyboardEvent) => {
-      if (evt.keyCode === 37 || evt.keyCode === 39) {
-        this.pause()
-        this._onCtnMove()
-        this.bar.toggleTimer(false)
-        seekTime = seekTime || this.currentTime
-        if (evt.keyCode === 37) {
-          // left
-          const temp = seekTime - 5
-          seekTime = temp >= 0 ? temp : 0.1 // prevent trigger seekTime init value
-        } else if (evt.keyCode === 39) {
-          // right
-          const temp = seekTime + 5
-          seekTime = temp >= this.duration ? this.duration : temp
-        }
-        this.bar.updateProgress(seekTime)
+    this._seekTime = 0
+    this._eventListener = [this._onKeyDown.bind(this)]
+    document.addEventListener('keydown', this._eventListener[0], false)
+  }
 
-        if (typeof this._seekTimer !== 'undefined') {
-          clearTimeout(this._seekTimer)
-        }
-        this._seekTimer = setTimeout(() => {
-          this.currentTime = seekTime
-          this.bar.toggleTimer(true)
-          this.play()
-          seekTime = 0
-        }, 500);
+  private _onKeyDown(evt: KeyboardEvent) {
+    if (!this.isReady) return
+    if (evt.keyCode === 37 || evt.keyCode === 39) {
+      this.pause()
+      this._onCtnMove()
+      this.bar.toggleTimer(false)
+      this._seekTime = this._seekTime || this.currentTime
+      if (evt.keyCode === 37) {
+        // left
+        const temp = this._seekTime - 5
+        this._seekTime = temp >= 0 ? temp : 0.1 // prevent trigger seekTime init value
+      } else if (evt.keyCode === 39) {
+        // right
+        const temp = this._seekTime + 5
+        this._seekTime = temp >= this.duration ? this.duration : temp
       }
-    }, false)
+      this.bar.updateProgress(this._seekTime)
+
+      if (typeof this._seekTimer !== 'undefined') {
+        clearTimeout(this._seekTimer)
+      }
+      this._seekTimer = setTimeout(() => {
+        this.currentTime = this._seekTime
+        this.bar.toggleTimer(true)
+        this.play()
+        this._seekTime = 0
+      }, 500);
+    }
   }
 
   private _onCtnMove() {
+    if (!this.isReady) return
     this.showBar()
 
     clearTimeout(this._moveTimer)
@@ -215,6 +245,7 @@ class Player {
   }
 
   private _onCtnClick() {
+    if (!this.isReady) return
     if (this.paused) {
       this.play()
     } else {

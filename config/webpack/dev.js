@@ -31,7 +31,7 @@ config.devServer = {
 
 config.plugins = config.plugins.concat([
   new webpack.DefinePlugin({
-    VERSION: `'debug mode'`
+    VERSION: `'develop mode'`
   })
 ])
 

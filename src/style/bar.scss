@@ -185,6 +185,29 @@ $barBg: rgba(48, 40, 44, .5);
     opacity: 0;
     transition: opacity ease-in-out .4s;
     pointer-events: none;
+    &.vinext-dot--static {
+      width: 10px;
+      margin-left: -5px;
+      padding: 19px 3px;
+      opacity: 1;
+      pointer-events: auto;
+      .vinext-fill, .vinext-hint {
+        pointer-events: none;
+      }
+      .vinext-hint {
+        max-width: 140px;
+        .vinext-text {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+      &.__show {
+        .vinext-hint {
+          transform: translate(-50%, 0) rotateX(0);
+        }
+      }
+    }
     &.__show {
       opacity: 1;
       .vinext-hint {

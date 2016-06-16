@@ -15,7 +15,7 @@ class Bar {
   $progress: Element
   $dot: HTMLElement
   $currentTime: Element
-  _fsListener: EventListenerObject
+  _eventListener: Array<EventListenerObject>
   _timer: any
 
   constructor(p: Player) {
@@ -24,6 +24,34 @@ class Bar {
     this.$parent = this.player.$container
 
     this.$inject()
+  }
+
+  public insertDots(dots: Array<Dot>) {
+    log('White dots: ', dots)
+
+    const oldHtml = this.$progress.querySelectorAll('.vinext-dot--static')
+    Array.prototype.forEach.call(oldHtml, oldDom => this.$progress.removeChild(oldDom))
+
+    const html = document.createDocumentFragment()
+    dots.forEach(dot => {
+      const div = document.createElement('div')
+      div.classList.add('vinext-dot', 'vinext-dot--static')
+      div.style.left = (dot.time / this.player.duration * 100) + '%'
+      /* tslint:disable */
+      div.dataset['time'] = dot.time.toString()
+      div.innerHTML = `<div class="vinext-fill"></div><div class="vinext-hint"><div class="vinext-text">${formatDuration(dot.time)} ${dot.intro}</div></div>`
+      /* tslint:enable */
+      html.appendChild(div)
+    })
+    this.$progress.appendChild(html)
+
+    const doms = this.$progress.querySelectorAll('.vinext-dot--static')
+    const fn = this._onDotMove.bind(this)
+    Array.prototype.forEach.call(doms, (dom: HTMLElement) => {
+      dom.addEventListener('mousemove', fn, false)
+      dom.addEventListener('mouseleave', fn, false)
+      dom.addEventListener('click', fn, false)
+    })
   }
 
   public toggleDisplay(status: boolean) {
@@ -54,6 +82,11 @@ class Bar {
     this.$currentTime.innerHTML = formatDuration(time)
     const $played = <HTMLElement>this.$progress.querySelector('.vinext-played')
     $played.style.width = time / this.player.duration * 100 + '%'
+  }
+
+  public destroy() {
+    this.toggleTimer(false)
+    document.removeEventListener(fullscreenApi.change, this._eventListener[0], false)
   }
 
   private $inject(): void {
@@ -102,8 +135,8 @@ class Bar {
     this.$volBar.addEventListener('click', this._onVolBarClick.bind(this), false)
 
     this.$fsBtn = this.$container.querySelector('.vinext-bar-btn--fs')
-    this._fsListener = this._onFsClick.bind(this)
-    this.$fsBtn.addEventListener('click', this._fsListener, false)
+    this._eventListener = [this._onFsClick.bind(this)]
+    this.$fsBtn.addEventListener('click', this._eventListener[0], false)
 
     this.$progress = this.$container.querySelector('.vinext-bar-progress')
     this.$dot = <HTMLElement>this.$progress.querySelector('.vinext-dot')
@@ -174,21 +207,25 @@ class Bar {
       } else {
         btn.innerHTML = '&#xe600;'
         this.$parent[fullscreenApi.request]()
-        document.removeEventListener(fullscreenApi.change, this._fsListener, false)
-        document.addEventListener(fullscreenApi.change, this._fsListener, false)
+        document.removeEventListener(fullscreenApi.change, this._eventListener[0], false)
+        document.addEventListener(fullscreenApi.change, this._eventListener[0], false)
       }
     } else {
       // native exit fullscreen
       if (document[fullscreenApi.element]) {
         btn.innerHTML = '&#xe600;'
       } else {
-        document.removeEventListener(fullscreenApi.change, this._fsListener, false)
+        document.removeEventListener(fullscreenApi.change, this._eventListener[0], false)
         btn.innerHTML = '&#xe601;'
       }
     }
   }
 
   private _onProgressMove(evt: DragEvent) {
+    const isStatic = (<HTMLElement>evt.target).classList.contains('vinext-dot--static')
+    if (isStatic) {
+      return evt.stopPropagation()
+    }
     const $hint = this.$dot.querySelector('.vinext-hint')
     const ratio = evt.offsetX / (<HTMLElement>evt.target).clientWidth
     if (evt.type === 'mousemove') {
@@ -199,6 +236,18 @@ class Bar {
       this.$dot.classList.remove('__show')
     } else if (evt.type === 'click') {
       this.player.currentTime = ratio * this.player.duration
+    }
+  }
+
+  private _onDotMove(evt: DragEvent) {
+    const $this = <HTMLElement>evt.target
+    if (evt.type === 'mousemove') {
+      this.$dot.classList.remove('__show')
+      $this.classList.add('__show')
+    } else if (evt.type === 'mouseleave') {
+      $this.classList.remove('__show')
+    } else if (evt.type === 'click') {
+      this.player.currentTime = parseFloat((<any>$this.dataset).time)
     }
   }
 }
