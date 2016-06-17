@@ -195,7 +195,7 @@ $barBg: rgba(48, 40, 44, .5);
         pointer-events: none;
       }
       .vinext-hint {
-        max-width: 140px;
+        max-width: 160px;
         .vinext-text {
           overflow: hidden;
           text-overflow: ellipsis;
@@ -221,9 +221,9 @@ $barBg: rgba(48, 40, 44, .5);
     }
     .vinext-hint {
       position: absolute;
-      top: -36px;
-      width: auto;
-      height: 24px;
+      bottom: 50px;
+      // width: auto;
+      // height: 24px;
       margin-left: 1px;
       padding: 2px 8px;
       border-radius: 4px;

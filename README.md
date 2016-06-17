@@ -1,6 +1,6 @@
 # vinext-player
 
-A project to learn TypeScript. 
+A project to learn TypeScript.
 
 ## What is vinext？
 
@@ -39,6 +39,5 @@ $ npm run prod
 # upload main file
 $ cd dist
 # there is a command line tool written in Golang
-$ ./upload -user nerkon -local main -remote vinext-player.js
+$ ./upload -user nekron -local main -remote vinext-player.js
 ```
-

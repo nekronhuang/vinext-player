@@ -62,10 +62,12 @@ declare interface PlayerElement extends Element {
 
   play: Function
   pause: Function
+  insertDots: Function
 
   muteOn?: Function
   muteOff?: Function
 
+  onInit?: Function
   onPlay?: Function
   onPause?: Function
   onSetTime?: Function

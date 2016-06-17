@@ -39,7 +39,7 @@ class Bar {
       div.style.left = (dot.time / this.player.duration * 100) + '%'
       /* tslint:disable */
       div.dataset['time'] = dot.time.toString()
-      div.innerHTML = `<div class="vinext-fill"></div><div class="vinext-hint"><div class="vinext-text">${formatDuration(dot.time)} ${dot.intro}</div></div>`
+      div.innerHTML = `<div class="vinext-fill"></div><div class="vinext-hint"><div class="vinext-text">${formatDuration(dot.time)}<br>${dot.intro}</div></div>`
       /* tslint:enable */
       html.appendChild(div)
     })

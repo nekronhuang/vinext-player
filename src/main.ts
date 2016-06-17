@@ -117,8 +117,8 @@ class Player {
         log(evtName)
         switch (evtName) {
           case 'loadeddata':
-            this.bar = new Bar(this)
             this.isReady = true
+            this.bar = new Bar(this)
             this.$player.play()
             if (this.initCallback) this.initCallback()
             break
@@ -204,6 +204,8 @@ class Player {
     this._seekTime = 0
     this._eventListener = [this._onKeyDown.bind(this)]
     document.addEventListener('keydown', this._eventListener[0], false)
+
+    this.$player.insertDots = this.insertDots.bind(this)
   }
 
   private _onKeyDown(evt: KeyboardEvent) {
