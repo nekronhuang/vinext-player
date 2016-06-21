@@ -14,7 +14,7 @@ class Loading {
   }
 
   public toggleDisplay(status: boolean) {
-    log('video show loading: ', status)
+    log('show loading: %o', status)
     if (status) {
       this.$container.classList.add('__show')
     } else {

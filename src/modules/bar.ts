@@ -27,7 +27,7 @@ class Bar {
   }
 
   public insertDots(dots: Array<Dot>) {
-    log('insert white dots: ', dots)
+    log('insert white dots: %o', dots)
 
     const oldHtml = this.$progress.querySelectorAll('.vinext-dot--static')
     Array.prototype.forEach.call(oldHtml, oldDom => this.$progress.removeChild(oldDom))
@@ -159,7 +159,7 @@ class Bar {
   }
 
   private _onPlayClick() {
-    log('video paused: ', this.player.paused)
+    log('video paused: %o', this.player.paused)
 
     if (this.player.paused) {
       this.player.play()
@@ -171,7 +171,7 @@ class Bar {
   private _onMuteClick() {
     const btn = this.$muteBtn
 
-    log('video muted: ', this.player.$player.get('muted'))
+    log('video muted: %o', this.player.$player.get('muted'))
 
     if (this.player.$player.get('muted')) {
       btn.innerHTML = '&#xe604;'
@@ -195,7 +195,7 @@ class Bar {
     }
     const ratio = v / height
 
-    log('video voluem: ', ratio)
+    log('video volume: %o', ratio)
 
     this.player.$player.set('volume', ratio)
     const $fill = <HTMLElement>this.$volBar.querySelector('.vinext-fill')
@@ -205,7 +205,7 @@ class Bar {
   private _onFsClick(evt: Event) {
     const btn = this.$fsBtn
 
-    log('video fullscreen: ', document[fullscreenApi.element], evt.type)
+    log('trigger fullscreen: %o, type: %s', document[fullscreenApi.element], evt.type)
 
     if (evt.type === 'click') {
       // btn click
