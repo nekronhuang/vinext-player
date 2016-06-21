@@ -1,4 +1,5 @@
 import Bar from './modules/bar'
+import Loading from './modules/loading'
 import { NOT_READY_ERR } from './constants/error'
 
 const log = require('debug')('vinext:main')
@@ -17,6 +18,8 @@ class Player {
   isEnd: boolean
   isSeeking: number
   bar: Bar
+  loading: Loading
+  flashvars: Flashvars
   initCallback: Function
   _seekTime: number
   _eventListener: Array<EventListenerObject>
@@ -44,6 +47,9 @@ class Player {
       if (this.isEnd) {
         this.currentTime = 0
       }
+      if (this.flashvars.mode === 'RTMP') {
+        this.$player.set('src', this.option.video)
+      }
       return this.$player.play()
     }
     throw new Error(NOT_READY_ERR)
@@ -62,6 +68,14 @@ class Player {
   public hideBar() {
     if (this.isReady) return this.bar.toggleDisplay(false)
     throw new Error(NOT_READY_ERR)
+  }
+
+  public showLoading() {
+    this.loading.toggleDisplay(true)
+  }
+
+  public hideLoading() {
+    this.loading.toggleDisplay(false)
   }
 
   public insertDots(dots: Array<Dot>) {
@@ -112,13 +126,16 @@ class Player {
     (<any>window).vjjFlash = {
       onReady: () => {
         this.$player.set('src', this.option.video)
+        if (this.flashvars.mode === 'RTMP') {
+          this.$player.play()
+        }
       },
       onEvent: (id: string, evtName: string) => {
         log(evtName)
         switch (evtName) {
           case 'loadeddata':
             this.isReady = true
-            this.bar = new Bar(this)
+            if (!this.bar) this.bar = new Bar(this)
             this.$player.play()
             if (this.initCallback) this.initCallback()
             break
@@ -129,6 +146,15 @@ class Player {
             if (typeof this.$player.onPlay === 'function') {
               this.$player.onPlay()
             }
+            break
+          case 'waiting':
+            this.showLoading()
+            if (typeof this.$player.onWaiting === 'function') {
+              this.$player.onWaiting()
+            }
+            break
+          case 'playing':
+            this.hideLoading()
             break
           case 'pause':
           case 'seeking':
@@ -177,6 +203,7 @@ class Player {
     } else {
       vars.mode = 'FLV'
     }
+    this.flashvars = vars
 
     const flashvars = Object.keys(vars).map(k => k + '=' + vars[k]).reduce((a, b) => a + '&' + b)
     const html = `
@@ -192,6 +219,7 @@ class Player {
           <param name="flashvars" value="${flashvars}" />
         </object>
         <div id="vinext-controlbar--ctn"></div>
+        <div id="vinext-loading--ctn"></div>
       </div>
     `
     this.$parent.innerHTML += html
@@ -206,6 +234,8 @@ class Player {
     document.addEventListener('keydown', this._eventListener[0], false)
 
     this.$player.insertDots = this.insertDots.bind(this)
+
+    this.loading = new Loading(this)
   }
 
   private _onKeyDown(evt: KeyboardEvent) {

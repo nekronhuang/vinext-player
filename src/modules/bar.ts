@@ -27,7 +27,7 @@ class Bar {
   }
 
   public insertDots(dots: Array<Dot>) {
-    log('White dots: ', dots)
+    log('insert white dots: ', dots)
 
     const oldHtml = this.$progress.querySelectorAll('.vinext-dot--static')
     Array.prototype.forEach.call(oldHtml, oldDom => this.$progress.removeChild(oldDom))
@@ -139,13 +139,21 @@ class Bar {
     this.$fsBtn.addEventListener('click', this._eventListener[0], false)
 
     this.$progress = this.$container.querySelector('.vinext-bar-progress')
+    this.$currentTime = this.$container.querySelector('.vinext-bar-time--current')
+
+    if (this.player.option.isLiveStream) {
+      this.$progress.classList.add('__hide')
+      this.$currentTime.classList.add('__hide')
+      this.$container.querySelector('.vinext-bar-time--total').classList.add('__hide')
+      this.$muteBtn.classList.add('__layout')
+      return
+    }
+
     this.$dot = <HTMLElement>this.$progress.querySelector('.vinext-dot')
     const moveFn = this._onProgressMove.bind(this)
     this.$progress.addEventListener('mousemove', moveFn, false)
     this.$progress.addEventListener('mouseleave', moveFn, false)
     this.$progress.addEventListener('click', moveFn, false)
-
-    this.$currentTime = this.$container.querySelector('.vinext-bar-time--current')
 
     this.toggleTimer(true)
   }

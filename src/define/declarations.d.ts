@@ -53,6 +53,8 @@ declare interface Dot {
 declare interface Option {
   appkey: string
   video: string
+
+  isLiveStream?: boolean
   needParse?: boolean
 }
 
@@ -71,6 +73,7 @@ declare interface PlayerElement extends Element {
   onPlay?: Function
   onPause?: Function
   onSetTime?: Function
+  onWaiting?: Function
 }
 
 declare const VERSION: string
