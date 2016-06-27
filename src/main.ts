@@ -129,49 +129,49 @@ class Player {
           this.$player.play()
         }
       },
-      onEvent: (id: string, evtName: string) => {
+      onStreamEvent: (id: string, evtName: string) => {
         log('event: %s', evtName)
         switch (evtName) {
-          case 'loadeddata':
-            this.isReady = true
-            if (!this.bar) this.bar = new Bar(this)
-            this.$player.play()
-            if (this.initCallback) this.initCallback()
-            break
-          case 'play':
-          case 'canplay':
+          case 'NetStream.Unpause.Notify':
+          case 'NetStream.Buffer.Full':
             this.isEnd = false
             this.bar.togglePlay(true)
+            this.hideLoading()
             if (typeof this.$player.onPlay === 'function') {
               this.$player.onPlay()
             }
             break
-          case 'waiting':
+          case 'NetStream.Buffer.Empty':
             this.showLoading()
             if (typeof this.$player.onWaiting === 'function') {
               this.$player.onWaiting()
             }
             break
-          case 'playing':
-            this.hideLoading()
-            break
-          case 'pause':
-          case 'seeking':
+          case 'NetStream.Pause.Notify':
+          // case 'NetStream.SeekStart.Notify':
             this.bar.togglePlay(false)
             if (typeof this.$player.onPause === 'function') {
               this.$player.onPause()
             }
             break
-          case 'seeked':
+          case 'NetStream.Seek.Notify':
             if (typeof this.$player.onSetTime === 'function') {
               this.$player.onSetTime(this.isSeeking)
             }
             break
-          case 'ended':
+          case 'NetStream.Play.Stop':
             this.isEnd = true
             break
           default:
             break
+        }
+      },
+      onEvent: (id: string, evtName: string) => {
+        if (evtName === 'loadeddata') {
+          this.isReady = true
+          if (!this.bar) this.bar = new Bar(this)
+          this.$player.play()
+          if (this.initCallback) this.initCallback()
         }
       },
     }
