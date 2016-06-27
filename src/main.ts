@@ -99,7 +99,6 @@ class Player {
     }
     this.isSeeking = time
     this.$player.set('currentTime', time)
-    if (this.paused) this.$player.play()
   }
 
   public get duration(): number {
@@ -239,7 +238,9 @@ class Player {
   }
 
   private _onKeyDown(evt: KeyboardEvent) {
+    const target = <HTMLElement>evt.target
     if (!this.isReady) return
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
     if (evt.keyCode === 37 || evt.keyCode === 39) {
       this.pause()
       this._onCtnMove()
