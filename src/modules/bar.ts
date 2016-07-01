@@ -210,11 +210,23 @@ class Bar {
     if (evt.type === 'click') {
       // btn click
       if (document[fullscreenApi.element]) {
+        const dom = <HTMLElement>document[fullscreenApi.element]
+
         btn.innerHTML = '&#xe601;'
+        dom.style.width = (<any>dom.dataset).w
+        dom.style.height = (<any>dom.dataset).h
         document[fullscreenApi.exit]()
       } else {
+        const dom = <HTMLElement>this.player.$parent
+
         btn.innerHTML = '&#xe600;'
-        this.$parent[fullscreenApi.request]()
+        /* tslint:disable */
+        dom.dataset['w'] = dom.style.width
+        dom.dataset['h'] = dom.style.height
+        /* tslint:enable */
+        dom.style.width = '100%'
+        dom.style.height = '100%'
+        dom[fullscreenApi.request]()
         document.removeEventListener(fullscreenApi.change, this._eventListener[0], false)
         document.addEventListener(fullscreenApi.change, this._eventListener[0], false)
       }
@@ -223,8 +235,12 @@ class Bar {
       if (document[fullscreenApi.element]) {
         btn.innerHTML = '&#xe600;'
       } else {
+        const dom = <HTMLElement>this.player.$parent
+
         document.removeEventListener(fullscreenApi.change, this._eventListener[0], false)
         btn.innerHTML = '&#xe601;'
+        dom.style.width = (<any>dom.dataset).w
+        dom.style.height = (<any>dom.dataset).h
       }
     }
   }
