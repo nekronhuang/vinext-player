@@ -43,6 +43,7 @@ declare interface Flashvars {
    * 播放器控制条ui
    */
   path?: string
+  showControls?: number
 }
 
 declare interface Dot {

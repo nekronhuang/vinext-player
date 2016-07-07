@@ -124,54 +124,55 @@ class Player {
   private _init(): void {
     (<any>window).vjjFlash = {
       onReady: () => {
-        this.$player.set('src', this.option.video)
+        // this.$player.set('src', this.option.video)
         if (this.flashvars.mode === 'RTMP') {
           this.$player.play()
         }
       },
-      onStreamEvent: (id: string, evtName: string) => {
+      onEvent: (id: string, evtName: string) => {
         log('event: %s', evtName)
         switch (evtName) {
-          case 'NetStream.Unpause.Notify':
-          case 'NetStream.Buffer.Full':
-            this.isEnd = false
+          case 'loadeddata':
+            if (!this.isReady) {
+              this.isReady = true
+              if (!this.bar) this.bar = new Bar(this)
+              // this.$player.play()
+              if (this.initCallback) this.initCallback()
+            }
+            break
+          case 'play':
             this.bar.togglePlay(true)
-            this.hideLoading()
             if (typeof this.$player.onPlay === 'function') {
               this.$player.onPlay()
             }
             break
-          case 'NetStream.Buffer.Empty':
+          case 'canplay':
+            this.isEnd = false
+            this.hideLoading()
+            break
+          case 'waiting':
             this.showLoading()
             if (typeof this.$player.onWaiting === 'function') {
               this.$player.onWaiting()
             }
             break
-          case 'NetStream.Pause.Notify':
+          case 'pause':
           // case 'NetStream.SeekStart.Notify':
             this.bar.togglePlay(false)
             if (typeof this.$player.onPause === 'function') {
               this.$player.onPause()
             }
             break
-          case 'NetStream.Seek.Notify':
+          case 'seeked':
             if (typeof this.$player.onSetTime === 'function') {
               this.$player.onSetTime(this.isSeeking)
             }
             break
-          case 'NetStream.Play.Stop':
+          case 'ended':
             this.isEnd = true
             break
           default:
             break
-        }
-      },
-      onEvent: (id: string, evtName: string) => {
-        if (evtName === 'loadeddata') {
-          this.isReady = true
-          if (!this.bar) this.bar = new Bar(this)
-          this.$player.play()
-          if (this.initCallback) this.initCallback()
         }
       },
     }

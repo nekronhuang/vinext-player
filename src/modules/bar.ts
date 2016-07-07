@@ -141,7 +141,7 @@ class Bar {
     this.$progress = this.$container.querySelector('.vinext-bar-progress')
     this.$currentTime = this.$container.querySelector('.vinext-bar-time--current')
 
-    if (this.player.option.isLiveStream) {
+    if (this.player.option.isLiveStream || this.player.flashvars.mode === 'RTMP') {
       this.$progress.classList.add('__hide')
       this.$currentTime.classList.add('__hide')
       this.$container.querySelector('.vinext-bar-time--total').classList.add('__hide')
