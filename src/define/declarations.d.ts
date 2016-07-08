@@ -59,22 +59,19 @@ declare interface Option {
   needParse?: boolean
 }
 
+declare interface ContainerElement extends Element {
+  instance?: any
+}
+
 declare interface PlayerElement extends Element {
   get: Function
   set: Function
 
   play: Function
   pause: Function
-  insertDots: Function
 
   muteOn?: Function
   muteOff?: Function
-
-  onInit?: Function
-  onPlay?: Function
-  onPause?: Function
-  onSetTime?: Function
-  onWaiting?: Function
 }
 
 declare const VERSION: string

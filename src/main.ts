@@ -11,7 +11,7 @@ console.info(VERSION)
 
 class Player {
   $parent: Element
-  $container: Element
+  $container: ContainerElement
   $player: PlayerElement
   option: Option
   isReady: boolean
@@ -20,9 +20,8 @@ class Player {
   bar: Bar
   loading: Loading
   flashvars: Flashvars
-  initCallback: Function
+  _eventCallback: any
   _seekTime: number
-  _eventListener: Array<EventListenerObject>
   _moveTimer: any
   _seekTimer: any
 
@@ -32,7 +31,8 @@ class Player {
     this.isReady = false
     this.isEnd = false
     this.isSeeking = 0
-    if (callback) this.initCallback = callback
+    this._eventCallback = {}
+    if (callback) this.addCallback('init', callback)
 
     if (this.$parent) {
       this._init()
@@ -103,7 +103,7 @@ class Player {
 
   public get duration(): number {
     if (!this.isReady) {
-      return 0
+      return NaN
     }
     return this.$player.get('duration')
   }
@@ -115,9 +115,19 @@ class Player {
     return this.$player.get('paused')
   }
 
+  public addCallback(event: string, handler: Function) {
+    this._eventCallback[event] = handler
+  }
+
+  public removeCallback(events: Array<string>) {
+    events.forEach((event) => {
+      this._eventCallback[event] = undefined
+    })
+  }
+
   public destroy() {
     this.bar.destroy()
-    document.removeEventListener('keydown', this._eventListener[0], false)
+    document.removeEventListener('keydown', this._eventCallback.keydown, false)
     this.$container.remove()
   }
 
@@ -137,13 +147,13 @@ class Player {
               this.isReady = true
               if (!this.bar) this.bar = new Bar(this)
               // this.$player.play()
-              if (this.initCallback) this.initCallback()
+              if (this._eventCallback.init) this._eventCallback.init()
             }
             break
           case 'play':
             this.bar.togglePlay(true)
-            if (typeof this.$player.onPlay === 'function') {
-              this.$player.onPlay()
+            if (typeof this._eventCallback.onPlay === 'function') {
+              this._eventCallback.onPlay()
             }
             break
           case 'canplay':
@@ -152,20 +162,20 @@ class Player {
             break
           case 'waiting':
             this.showLoading()
-            if (typeof this.$player.onWaiting === 'function') {
-              this.$player.onWaiting()
+            if (typeof this._eventCallback.onWaiting === 'function') {
+              this._eventCallback.onWaiting()
             }
             break
           case 'pause':
-          // case 'NetStream.SeekStart.Notify':
+            // case 'NetStream.SeekStart.Notify':
             this.bar.togglePlay(false)
-            if (typeof this.$player.onPause === 'function') {
-              this.$player.onPause()
+            if (typeof this._eventCallback.onPause === 'function') {
+              this._eventCallback.onPause()
             }
             break
           case 'seeked':
-            if (typeof this.$player.onSetTime === 'function') {
-              this.$player.onSetTime(this.isSeeking)
+            if (typeof this._eventCallback.onSetTime === 'function') {
+              this._eventCallback.onSetTime(this.isSeeking)
             }
             break
           case 'ended':
@@ -224,16 +234,15 @@ class Player {
     `
     this.$parent.innerHTML += html
     this.$container = this.$parent.querySelector('#vinext-player--ctn')
+    this.$container.instance = this
     this.$player = this.$parent.querySelector('#vinext-player') as PlayerElement
 
     this.$container.addEventListener('mousemove', this._onCtnMove.bind(this), false)
     // can't fire click event on object
     this.$container.addEventListener('mousedown', this._onCtnClick.bind(this), false)
     this._seekTime = 0
-    this._eventListener = [this._onKeyDown.bind(this)]
-    document.addEventListener('keydown', this._eventListener[0], false)
-
-    this.$player.insertDots = this.insertDots.bind(this)
+    this.addCallback('keydown', this._onKeyDown.bind(this))
+    document.addEventListener('keydown', this._eventCallback.keydown, false)
 
     this.loading = new Loading(this)
   }
