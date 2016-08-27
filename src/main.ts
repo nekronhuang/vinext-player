@@ -11,7 +11,7 @@ console.info(VERSION)
 
 class Player {
   $parent: Element
-  $container: ContainerElement
+  $container: Element
   $player: PlayerElement
   option: Option
   isReady: boolean
@@ -234,7 +234,6 @@ class Player {
     `
     this.$parent.innerHTML += html
     this.$container = this.$parent.querySelector('#vinext-player--ctn')
-    this.$container.instance = this
     this.$player = this.$parent.querySelector('#vinext-player') as PlayerElement
 
     this.$container.addEventListener('mousemove', this._onCtnMove.bind(this), false)
