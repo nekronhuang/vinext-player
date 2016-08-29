@@ -25,6 +25,7 @@ config.plugins = config.plugins.concat([
     comments: false,
     compress: {
       screw_ie8: true, // give up support for ie 6-8
+      warnings: false,
     },
     mangle: {
       screw_ie8: true,

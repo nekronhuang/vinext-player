@@ -59,10 +59,6 @@ declare interface Option {
   needParse?: boolean
 }
 
-declare interface ContainerElement extends Element {
-  instance?: any
-}
-
 declare interface PlayerElement extends Element {
   get: Function
   set: Function
