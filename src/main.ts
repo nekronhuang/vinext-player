@@ -154,6 +154,7 @@ class Player {
         }
       },
       onEvent: (id: string, evtName: string) => {
+        log('event: %s', evtName)
         switch (evtName) {
           case 'loadeddata':
             if (!this.isReady) {
