@@ -93,6 +93,20 @@ class Player {
     return this.$player.get('currentTime')
   }
 
+  public get currentRealTime(): number {
+    if (!this.isReady) {
+      return 0
+    }
+    return this.$player.get('currentRealTime')
+  }
+
+  public get currentUrl(): string {
+    if (!this.isReady) {
+      return ''
+    }
+    return this.$player.get('currentUrl')
+  }
+
   public set currentTime(time: number) {
     if (!this.isReady) {
       throw new Error(NOT_READY_ERR)
@@ -189,7 +203,7 @@ class Player {
   }
 
   private $inject(): void {
-    const url = 'http://flash.videojj.com/test/vjj-swf1.swf'
+    const url = 'http://videojj-cdn.oss-cn-beijing.aliyuncs.com/flash/os/vjj_player.swf'
     const m3u8Reg: any = new RegExp('\.m3u8$')
     const rtmpReg: any = new RegExp('^rtmp:\/\/')
     let vars: Flashvars = {
@@ -199,7 +213,7 @@ class Player {
       mode: '',
       host: 'http://videojj.com',
       referer: location.href,
-      path: 'http://flash.videojj.com/test/player_ui.swf',
+      path: 'http://videojj-cdn.oss-cn-beijing.aliyuncs.com/flash/os/player_ui.swf',
       src: this.option.video,
     }
 
